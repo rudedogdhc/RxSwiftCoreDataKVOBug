@@ -48,6 +48,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     let person = Person(context: persistentContainer.viewContext)
     person.personName = "a person"
 
+    // Create an observable using rx.observe
     person.rx.observe(NSSet.self, "pets")
       .map { $0?.compactMap { $0 as? Pet } ?? []}
       .map { $0.map { $0.name ?? "<unknown>"}.sorted() }
@@ -55,6 +56,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       .subscribe(onNext: {names in print("rx.observe: \(names)")})
       .disposed(by: disposeBag)
 
+    // Create an observable using native Swift KVO.
     Observable<NSSet>.create { subscribe in
       let observer = person.observe(\.pets, options: .initial) { person, _ in
         subscribe.on(.next(person.pets ?? NSSet()))
@@ -76,13 +78,47 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       return result
     }
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1) { print("person.pets = pet0"); person.pets = NSSet(object: pets[0]); print() }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { print("person.pets = pet0,pet1"); person.pets = NSSet(array: [pets[0], pets[1]]); print() }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 3) { print("person.addToPets(pet2)"); person.addToPets(pets[2]) ; print() }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 4) { print("person.addToPets(pet3)"); person.addToPets(pets[3]) ; print() }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 5) { print("person.removeFromPets(pet0)"); person.removeFromPets(pets[0]) ; print() }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 6) { print("person.addToPets(pet4,pet5)"); person.addToPets(NSSet(array: [pets[4], pets[5]])); print() }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 7) { print("person.removeFromPets(pet2,pet3)"); person.removeFromPets(NSSet(array: [pets[2],pets[3]])); print() }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+      print("person.pets = pet0")
+      person.pets = NSSet(object: pets[0])
+      print()
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+      print("person.pets = pet0,pet1")
+      person.pets = NSSet(array: [pets[0], pets[1]])
+      print()
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+      print("person.addToPets(pet2)")
+      person.addToPets(pets[2])
+      print()
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+      print("person.addToPets(pet3)")
+      person.addToPets(pets[3])
+      print()
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+      print("person.removeFromPets(pet0)")
+      person.removeFromPets(pets[0])
+      print()
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+      print("person.addToPets(pet4,pet5)")
+      person.addToPets(NSSet(array: [pets[4], pets[5]]))
+      print()
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
+      print("person.removeFromPets(pet2,pet3)")
+      person.removeFromPets(NSSet(array: [pets[2], pets[3]]))
+      print()
+    }
   }
 }
 
