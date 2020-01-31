@@ -44,20 +44,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
   let disposeBag = DisposeBag()
 
+  func show(observable: Observable<NSSet>, prefix: String) {
+    observable
+      .map { $0.compactMap { $0 as? Pet }}
+      .map { $0.map { $0.name ?? "<unknown>"}.sorted() }
+      .map { $0.joined(separator: ",")}
+      .subscribe(onNext: {names in print("\(prefix): |\(names)|")})
+      .disposed(by: disposeBag)
+  }
+
   func testObserver() {
     let person = Person(context: persistentContainer.viewContext)
     person.personName = "a person"
 
     // Create an observable using rx.observe
-    person.rx.observe(NSSet.self, "pets")
-      .map { $0?.compactMap { $0 as? Pet } ?? []}
-      .map { $0.map { $0.name ?? "<unknown>"}.sorted() }
-      .map { $0.joined(separator: ",")}
-      .subscribe(onNext: {names in print("rx.observe: |\(names)|")})
-      .disposed(by: disposeBag)
+    let rxObserver = person.rx.observe(NSSet.self, "pets")
+      .map { $0 ?? NSSet() }
+
+    show(observable: rxObserver, prefix: "rx.observe")
 
     // Create an observable using native Swift KVO.
-    Observable<NSSet>.create { subscribe in
+    let kvoObservable = Observable<NSSet>.create { subscribe in
       let observer = person.observe(\.pets, options: .initial) { person, _ in
         subscribe.on(.next(person.pets ?? NSSet()))
       }
@@ -66,11 +73,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         observer.invalidate()
       }
     }
-    .map { $0.compactMap { $0 as? Pet}}
-    .map { $0.map { $0.name ?? "<unknown>"}.sorted() }
-    .map { $0.joined(separator: ",")}
-    .subscribe(onNext: {names in print("direct KVO: |\(names)|")})
-    .disposed(by: disposeBag)
+
+    show(observable: kvoObservable, prefix: "direct KVO")
 
     let pets = (0..<10).map {ndx -> Pet in
       let result = Pet(context: persistentContainer.viewContext)
