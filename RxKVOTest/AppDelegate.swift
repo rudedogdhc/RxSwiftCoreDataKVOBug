@@ -53,7 +53,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       .map { $0?.compactMap { $0 as? Pet } ?? []}
       .map { $0.map { $0.name ?? "<unknown>"}.sorted() }
       .map { $0.joined(separator: ",")}
-      .subscribe(onNext: {names in print("rx.observe: \(names)")})
+      .subscribe(onNext: {names in print("rx.observe: |\(names)|")})
       .disposed(by: disposeBag)
 
     // Create an observable using native Swift KVO.
@@ -69,7 +69,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     .map { $0.compactMap { $0 as? Pet}}
     .map { $0.map { $0.name ?? "<unknown>"}.sorted() }
     .map { $0.joined(separator: ",")}
-    .subscribe(onNext: {names in print("direct KVO: \(names)")})
+    .subscribe(onNext: {names in print("direct KVO: |\(names)|")})
     .disposed(by: disposeBag)
 
     let pets = (0..<10).map {ndx -> Pet in
@@ -77,6 +77,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       result.name = "pet\(ndx)"
       return result
     }
+
+    print()
 
     DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
       print("person.pets = pet0")
